@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Club Ukeleles de Ponferrada</title>
+<style>
+:root {
+  --primary: #2d6a4f;
+  --primary-light: #40916c;
+  --primary-dark: #1b4332;
+  --accent: #f4a261;
+  --chord-color: #e63946;
+  --bg: #fefae0;
+  --bg-dark: #212529;
+  --card-bg: #ffffff;
+  --text: #212529;
+  --text-light: #495057;
+  --border: #dee2e6;
+  --shadow: 0 2px 10px rgba(0,0,0,0.1);
+  --radius: 8px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+header {
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+  color: white; padding: 1rem 2rem; display: flex; align-items: center;
+  justify-content: space-between; box-shadow: var(--shadow); position: sticky; top: 0; z-index: 100;
+}
+header h1 { font-size: 1.4rem; display: flex; align-items: center; gap: 0.5rem; }
+header h1 .logo { font-size: 1.8rem; }
+.header-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+.btn {
+  padding: 0.5rem 1rem; border: none; border-radius: var(--radius); cursor: pointer;
+  font-size: 0.85rem; font-weight: 500; transition: all 0.2s;
+  display: inline-flex; align-items: center; gap: 0.4rem;
+}
+.btn:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
+.btn:active { transform: translateY(0); }
+.btn-primary { background: var(--primary); color: white; }
+.btn-secondary { background: var(--border); color: var(--text); }
+.btn-danger { background: #dc3545; color: white; }
+.btn-accent { background: var(--accent); color: white; }
+.btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+.btn-sm { padding: 0.3rem 0.6rem; font-size: 0.75rem; }
+.btn-lg { padding: 0.7rem 1.4rem; font-size: 1rem; }
+.btn-white { background: white; color: var(--primary); }
+
+.main-container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+
+.alpha-index {
+  display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 1rem;
+  padding: 0.8rem; background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow);
+}
+.alpha-index a {
+  width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center;
+  border-radius: 4px; text-decoration: none; color: var(--primary); font-weight: 600;
+  font-size: 0.8rem; transition: all 0.2s;
+}
+.alpha-index a:hover { background: var(--primary); color: white; }
+.alpha-index a.active { background: var(--primary); color: white; }
+.alpha-index a.disabled { color: #ccc; pointer-events: none; }
+.alpha-index a.alpha-all {
+  width: auto;
+  padding: 0 0.6rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border-left: 1px solid var(--border);
+  margin-left: 0.3rem;
+  padding-left: 0.6rem;
+}
+
+.controls-bar { display: flex; gap: 0.8rem; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
+.search-box { flex: 1; min-width: 200px; position: relative; }
+.search-box input {
+  width: 100%; padding: 0.6rem 1rem 0.6rem 2.5rem; border: 2px solid var(--border);
+  border-radius: var(--radius); font-size: 0.9rem; transition: border-color 0.2s;
+}
+.search-box input:focus { outline: none; border-color: var(--primary); }
+.search-box::before { content: '🔍'; position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); font-size: 0.9rem; }
+
+.song-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.song-card {
+  background: var(--card-bg); border-radius: var(--radius); padding: 1rem 1.2rem;
+  display: flex; align-items: center; justify-content: space-between;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06); cursor: pointer; transition: all 0.2s;
+  border-left: 4px solid transparent;
+}
+.song-card:hover { border-left-color: var(--primary); box-shadow: var(--shadow); transform: translateX(4px); }
+.song-card .song-info { flex: 1; }
+.song-card .song-title { font-weight: 600; font-size: 1rem; color: var(--primary-dark); }
+.song-card .song-meta { font-size: 0.8rem; color: var(--text-light); margin-top: 0.2rem; }
+.song-card .song-actions { display: flex; gap: 0.3rem; }
+
+/* Playlist panel deslizante */
+.playlist-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 140; display: none; }
+.playlist-overlay.active { display: block; }
+.playlist-panel {
+  position: fixed; top: 0; right: -320px; width: 300px; height: 100vh;
+  background: var(--card-bg); z-index: 150; box-shadow: -4px 0 16px rgba(0,0,0,0.15);
+  transition: right 0.3s ease; display: flex; flex-direction: column;
+}
+.playlist-panel.active { right: 0; }
+.playlist-panel-header {
+  padding: 1rem 1.2rem; background: var(--primary); color: white;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.playlist-panel-header h3 { font-size: 1rem; }
+.playlist-panel-body { flex: 1; overflow-y: auto; padding: 1rem 1.2rem; }
+.playlist-panel .playlist-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-size: 0.85rem;
+}
+.playlist-panel .playlist-item:last-child { border-bottom: none; }
+.playlist-panel .playlist-item.active-pl { background: rgba(45,106,79,0.08); border-radius: 4px; }
+.playlist-panel .pl-name { font-weight: 500; cursor: pointer; }
+.playlist-panel .pl-name:hover { color: var(--primary); text-decoration: underline; }
+.playlist-panel .pl-count { font-size: 0.75rem; color: var(--text-light); }
+.playlist-create { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; gap: 0.4rem; }
+.playlist-create input { flex: 1; padding: 0.4rem; border: 2px solid var(--border); border-radius: 4px; font-size: 0.8rem; min-width: 0; }
+
+/* Reading mode */
+.reading-mode { position: fixed; inset: 0; background: var(--bg-dark); color: #e9ecef; z-index: 200; display: none; flex-direction: column; }
+.reading-mode.active { display: flex; }
+.reading-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.8rem 1.5rem; background: rgba(0,0,0,0.3); flex-shrink: 0;
+}
+.reading-header .song-title { font-size: 1.3rem; font-weight: 700; }
+.reading-header .song-artist { font-size: 0.9rem; color: #adb5bd; }
+.reading-controls { display: flex; align-items: center; gap: 0.8rem; }
+.reading-controls select, .reading-controls input {
+  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+  color: white; padding: 0.4rem 0.6rem; border-radius: 4px; font-size: 0.85rem;
+}
+.reading-controls select option { color: var(--text); }
+.reading-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  column-count: 2;
+  column-gap: 1.5rem;
+  column-fill: auto;
+}
+
+.reading-content pre {
+  font-family: 'Courier New', monospace;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+  line-height: 1.8;
+}
+
+.reading-controls #tuningSelect {
+  background: rgba(244, 162, 97, 0.2);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+  padding: 0.4rem 0.8rem;
+}
+
+.reading-controls #tuningSelect option {
+  color: var(--text);
+  background: white;
+}
+
+.reading-controls #tuningSelect:focus {
+  background: rgba(244, 162, 97, 0.35);
+  box-shadow: 0 0 4px rgba(244, 162, 97, 0.5);
+}
+
+.reading-column pre { font-family: 'Courier New', monospace; white-space: pre-wrap; word-wrap: break-word; margin: 0; }
+
+/* Flechas de navegación en el header */
+.reading-nav {
+  font-size: 2rem;
+  color: rgba(255,255,255,0.4);
+  cursor: pointer;
+  padding: 0.3rem 0.6rem;
+  transition: color 0.2s;
+  user-select: none;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.08);
+  line-height: 1;
+}
+.reading-nav:hover { color: rgba(255,255,255,0.9); background: rgba(255,255,255,0.15); }
+.reading-nav:active { transform: scale(0.95); }
+
+.chord-span {
+  color: var(--accent);
+  font-weight: 700;
+  cursor: pointer;
+  position: relative;
+  padding: 0 2px;
+  background: rgba(244,162,97,0.12);
+  border-radius: 3px;
+  z-index: 10;
+}
+
+.chord-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a1a2e;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 8px;
+  display: none;
+  z-index: 9999;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.chord-tooltip.tooltip-below { bottom: auto; top: 100%; }
+.chord-tooltip.tooltip-left { left: 0; transform: translateX(0); }
+.chord-tooltip.tooltip-right { left: auto; right: 0; transform: translateX(0); }
+
+.chord-span.show-tooltip .chord-tooltip { display: block; }
+
+@media (hover: hover) {
+  .chord-span:hover .chord-tooltip { display: block; }
+}
+
+.chord-span:hover .chord-tooltip { display: block; }
+.chord-tooltip svg { display: block; }
+
+/* Editor */
+.editor-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 150; display: none; }
+.editor-overlay.active { display: block; }
+.editor-panel {
+  position: fixed; top: 0; right: -600px; width: 580px; max-width: 95vw; height: 100vh;
+  background: var(--card-bg); z-index: 160; box-shadow: -4px 0 20px rgba(0,0,0,0.2);
+  transition: right 0.3s ease; display: flex; flex-direction: column;
+}
+.editor-panel.active { right: 0; }
+.editor-header { padding: 1rem 1.5rem; background: var(--primary); color: white; display: flex; align-items: center; justify-content: space-between; }
+.editor-header h2 { font-size: 1.1rem; }
+.editor-tabs { display: flex; border-bottom: 2px solid var(--border); background: #f8f9fa; }
+.editor-tab {
+  padding: 0.7rem 1.2rem; cursor: pointer; font-size: 0.85rem; font-weight: 500;
+  border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s;
+}
+.editor-tab:hover { color: var(--primary); }
+.editor-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+.editor-body { flex: 1; overflow-y: auto; padding: 1.5rem; }
+.editor-section { display: none; }
+.editor-section.active { display: block; }
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-light); margin-bottom: 0.3rem; text-transform: uppercase; }
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%; padding: 0.6rem; border: 2px solid var(--border); border-radius: var(--radius);
+  font-size: 0.9rem; transition: border-color 0.2s;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); }
+.form-group textarea { min-height: 200px; font-family: 'Courier New', monospace; }
+.editor-preview { background: #f8f9fa; border-radius: var(--radius); padding: 1rem; max-height: 400px; overflow-y: auto; }
+.editor-preview pre { font-family: 'Courier New', monospace; font-size: 0.9rem; line-height: 1.7; white-space: pre-wrap; word-wrap: break-word; margin: 0; }
+.editor-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border); display: flex; gap: 0.5rem; justify-content: flex-end; }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 250; display: none; align-items: center; justify-content: center; }
+.modal-overlay.active { display: flex; }
+.modal { background: white; border-radius: var(--radius); padding: 2rem; max-width: 500px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+.modal h3 { margin-bottom: 1rem; }
+.modal .modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.5rem; }
+
+/* Playlist banner */
+.playlist-banner {
+  background: var(--primary); color: white; padding: 0.6rem 1rem;
+  border-radius: var(--radius); margin-bottom: 0.8rem;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+#listView.playlist-active {
+  background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+}
+
+#listView.playlist-active .song-card {
+  border-left: 4px solid var(--primary);
+}
+
+@media print {
+  header, .controls-bar, .alpha-index, .playlist-section,
+  .song-card .song-actions, .reading-nav, .reading-controls,
+  .playlist-overlay, .playlist-panel, .editor-overlay, .editor-panel { display: none !important; }
+  .song-card { break-inside: avoid; border: 1px solid #ccc; }
+  .reading-mode { position: static; background: white; color: black; }
+  .reading-column { background: white; }
+  .chord-span { color: #000; font-weight: bold; background: none; }
+}
+
+@media (max-width: 768px) {
+  header { padding: 0.8rem 1rem; }
+  header h1 { font-size: 1.1rem; }
+  .main-container { padding: 1rem; }
+  .reading-content { flex-direction: column; }
+  .editor-panel { width: 100%; right: -100%; }
+  .playlist-panel { width: 100%; right: -100%; }
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #aaa; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><span class="logo"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAABhGlDQ1BJQ0MgcHJvZmlsZQAAKJF9kb9Lw0AcxV9TpVJaHAwi4pChOtlFRRxLFYtgobQVWnUwufQXNGlJUlwcBdeCgz8Wqw4uzro6uAqC4A8Q/wBxUnSREr+XFFrEeHDch3f3HnfvAKFVZZrZFwM03TLSibiUy69KgVcEMYww/BBlZtaTmcUsPMfXPXx8vYvyLO9zf46wWjAZ4JOIY6xuWMQbxLObVp3zPrHIyrJKfE48adAFiR+5rrj8xrnksMAzRSObnicWiaVSDys9zMqGRjxDHFE1nfKFnMsq5y3OWrXBOvfkLwwV9JUM12mOIYElJJGCBAUNVFCFhSitOikm0rQf9/CPOv4UuRRyVcDIsYAaNMiOH/wPfndrFqen3KRQHOh/se2PcSCwC7Sbtv19bNvtE8D/DFzpXX+tBcx9kt7sapEjYHAbuLjuasoecLkDjDzVZUN2JD9NoVgE3s/om/LA0C0QXHN76+zj9AHIUlfLN8DBITBRoux1j3cP9Pb275lOfz9tDHKkSjnLkgAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAAPYQAAD2EBqD+naQAAAAd0SU1FB+oKFg0HOsVcXoAAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAARTklEQVRo3r1aeVgUV7b/VfVK0xtLs8gqNCDiioqiJsYk7tFEE6PBFTfy4kRnsrxkxsRxvoxO3osTo5PEmLjEoCgTB4MKMbjijiKguASBRgUa6Aaa3rfquu8PCFLQRM345nwfH92nqu89v3v2U0XhCdG8efPVutraceNN5uRgxjNQ4WbCxHK5iiXwBQCaT1vtZrPe5COu11JUeUlIcElkTEzh5s2fVT2J/al/58dz574WE3z79qJRDvecvi9MSYgdOxaS6GjwQ0JAy2S4o3MgIdoPPIoCCEFLUxuELht4LTpYqjWoPnMWdy9eqrgkk2bzhgzevWnTpxr8J2na1GnDNyX0P3h+xeuM8eQpwrS1kV/ou2OVZMfRO6TFaCcfZV0nLren81r2aQ3JPq0hVfVGcqpUS0xWF3Homomh4BgpXLyE+fvYpw9mZLw+/LfIxHucm2fMeLHPYp7gq2WjUrdM+XhDov+rafSBGoLAQBmUUhEAoF5nAcMCidF+sFqd6B/tBwqAhyUormxBoFQIfZsD1+6bkJqowsY8DYaMG4LgyVPp1NEp/UJLSpfHKpXxo+fNv3TmTKH5iQNZkDp6wRKB8Mgrmz4dwU6aRZ1vIkiIUOJ4WSPsTgZJ0X4AALuTQUW9GcPU/qjXW6FSiiEW8sES4M59I4ao/VGjsyJAKgSPAoQ8Cv2j/HD0Sj2GjOoH6djx1MiEuIGuvVlLg8c9rS0qK7v+RHwkI+N1Uei581+kzZ+/1H9BOiQqPxhMTpwoa0R4gBhuhqC6yYoVU+MBixkuTQ3cWi3gdgMsQavBgLvltyARi6EICUJgTDTEUVFwqPrgvoVAKOTBYHRAHa4Aj6bwzU/VWDYxFnLGhuotm3GgrGzH4KVLVs6cOdP5m4FMnjxFMaWiMjft043jqGcmgC/g4/jVerz8dF9knawGIcDs1DA4ykpBGhrAC1JBFB8PgUoF0DQAoKSsHMPmvgfw+ACPDynNw1wPg1SPHSPmP4fYSc/iniICUrkEp6814qmBwRALeLhe04oJQ0PRuG8/9n+zvZCeNfPF3/9+tfGxgUyYMFExq1JTkJb5bUpb3GAcvlyHFVPjUXSzCU1GJ2akhMF+4QJgNkGSmgq+KtDrOt2BgO74z+MBNB/pjAtz1b5IXbUYN6TRSFKrkH26Bksmx6FOZ4HOYEfsvVJkrd9wmZ398sTVq72Dob36w4KFoukVlblpe3anyMeOQUSQFEqJANX1JiRE+eH5YBbWgzmQDBoA+YzpvYJ4FNolkmBSPQ+r394OUeZWULpGxPWRodXkwI7jNQj084H/5ElIW/OnFE/Owdzc3FzRIzv7yxbbtqVbPpvp9/xz7WqjgMQoJWq0JoRWXQOfcUE+eRJoieShgjY06vD1gePtpkbTAEX3/EzRKBOIsKeRQXROHp4fn4DLrTzMGBWOcJUUAOCjViOaL4jOz9wTevpOxaGHApnXr/+CNzNWfBS+cEE7gs4bCeSXTkHcPxE+SUmPfOKPCgQ0DTdFI1cgA5VfhJmDFAgYmAiafiCDNCkJgbd/ThaqYzXdoxnHtJKTh/VZHBe3JSZjRaezAgAIgenQYfiMGglhZOT/e8LdIPXDXz/7CYa8fK5D83jo99Yf8Gxt/ZZ16/7Sp1cgr93XfjJ63VolLZVyFrAUnoF4WDIEwcGPLRQh5DeB2eKjwKZPf4L5UhGHz/f3wzMfrlEKz1/4xCuQIYn9h0/KWPaaZOhQzg+dGg1oXwmEERH4T9MGWQAOfLgL7oYGDl8+ZgzGq2Nfe+ONlcN7AFmh1a+JX7yQ6uoXxOWCo/gqJCNGwOVyo6XV0F6GNDQBAKw2G4ym9ipC28F7VFoxrj+EHfa/LFUNAFg6oi8AQEJTSB8SDgB4UxKG8s++ATxsF8/mYdCK5VTsjRtrOEASEhJjUpYtni6KjeVsZj17DtKJEwAAx04WYvee72E2W7B05Ro0NDYh78fjyD18FDp9Cxa/8ScYDG2PBMJPQGPtW0uw4w+z8HXGFPz13cUYGSTD/76fjs1zR+PbNyZh3cqZ7TKAwhflTpiLuCYmGTQIw/rGTH/vvfdjOoHMatQvSnh5Fq+rNli7HazTCZ5SCQC4WnoDn+8rQHNzC366UYu6Oi2ult7E5avXUVdXj2M369DQ+GhaCZeLERYajH5xfZHULwbBqgCMGxoDfz85kgfEop86EpFhwUCHxnaKZbi07V8gDNPFKWgMnpfGsxcXLwIAPgCMUCrnSAYP4mxmu1IM39GpD4CxLGoNFqS/+WcAwKo1f0d9swkMS1By6+5v8oHBSQkgaA8Ga1fPBwCkJPcHRbVbPI+i4OmIFfubJRhz7Tokw5IfhOPkZIwymedsAf5MR0ZGq2OXpyd0T24evb5TG78QwxIU3ml3vEs1etSanWiwunBRo+tInNyKR6drRnOLAX9b/kK3UNb+TyDgQygQAAB8JT4AAKFAAAGf16N+2ukjR/Xxc9wIFuCPqJEjE9555x01PcBoGheZksIVuLkZgm75Qi6TPvSEBR1CAYDZbME3u7NRV6/FvLkz8dGiiZ3X7G4PGMbzq2u53QyYrg4OoPjoHbBWK4cXO+5paO5UjqMnMyTZJyqKG3IrKyGKU3N46QvnYPao+F43/ufHb0Id27fzu0wmxeiR7aG8zdCGnIJLndeqzE58uWM/PCzrdS0Py+Lz3Ud68C/IVHBqajg8WUwMhjbpkukghgzkBwd1M6vmHmblp1TgHxvXQikS9Njgq/fm45WZ03oIYzB0FKoUhWGJ0Zzrq3ccxf5/5XsFcuBIId7KKe7B3y+WwXbvHtcKQkMRyrIDaVmAMownk3U7Eu9qDw5SwccLkNi+UdA3t6K2TgsAuHGrAi6nC1MmjQchQNHlEmw/eR2fr3oFAJDkL8GmpZNxR1PrdZ+blfVe+RaKRvNdbnLkKeRQ2OxhtHDYUBWnrgJAicW9mpDB6e65gc2OXd9lY/OXu+B0ufC3jV/h+5zDne7q8Xiw9a05+K8lc/HfL43E5g+WYvmCWQgNVnn3NT7d6/4mPTdX0T4+8JHLVTQvOsLXi6f1Wjc57D2vuV0uFJy5gi8PXYDZbEXWuVu4frMCLrcbVEexF9s3EjRNY0hSPCLCQuEr8UE/dZTXfSRetN6ZpJ3drIWiwLo9vnT3kNk1PHYnh9MFeCkC7XYHaIqC28PiSH4BAODnqvs4VXge8fFqCAUCJCa0B4+U4YMRpPLvDL9eNSLkP3ZOoj219dYeXKH3E3E6XV57SpPZCn+FFIyHRfpHOwEAeWX3sPfAj/D1ESEpMQ7hYaEd/hQJpUIOAHC5Ga/7CIW9a8RHSHc3E9A0rLTrSokeLPeUicP7wMLjYTjNVqemHA5IfH168EMDFSC/UsozjHcgcknvPqoIVHC+s3YH7CaTnrY0Ntd7LN3mYDy6lyTl3XdsdjuCA5Q9T08seqDJbsQS0qtpiURCr3w+YREQ3Ye7jtkEk1BQT+tplDM6Pdfe/P3hMZm8ZluvDmhzwEfSUyM0r73UsHvRsIfxwNfH+8n79MKf77BAGsXti9wNjWii6XL6FDwljvvcJCOOU8NZXd1jIZfL5V0jVhtk0p7Bj99RM7m8aJLxeMDvRSNyX6+DEow26SHsG8MN/TU1KFQqSugCsbCwrriEK0BwMNzdSoFfGilvdK+hBQFKOYf3xTtp+F3GIgDA9u9ykHf0BMdXbHYHJL3kKx7fO8Dhz0aDJ+cmb82581CFhxfSJpOhSrNjVwVxOLiL+fmBNZt7OLU30mhbQfMfDGQiFD5Ynj4PwUHtCS+3pAYvvL0Z1TX3uuQed68+IvYStdKcFsRPHMs1zzYjan48WrFnT2YVDQClmnvZths3uUlpZAqsFy5yTcjmHYi+zQI+74FQVhcDhmHQZjShXtuIDcumASCc6tjmcPTq1AJhT36arxGSZO48wVpaiosiYXZnh7jJV7i7KjeXkzJpX9+OqGB+qEbMLg8nh7ba3aiuuYsLFy9Dp29G2qsvIiUyAJHhDyKOy+mCUOgdiLRb+J3rtGJsxougut5PCG7sz/boE/vt7gTSZjRoSj7+7LCrW2XpO+5pmI8df5DBewHi7JaHZAIeVIEBGJOaAlVgIPbsP4i7ejPajA8iodPlgljk3anFXTTFA8HqWAL5U1yzcty6jaLCM4f37cvScKYoGyX89Zo9WRyJaLEYosRE2K+Xt6vS6t3ZWUIgFj/YfOuHyxAcpIJCIUd4WAg+2PkjdHY39n1/uEsEdHfmmV/L7JtNWiS/vQJU1wBACG7t3ElOqGPW9xgH3TIZik+sXb/P3s1XxIn9wGi1cDc1wWZ39JpxPb801xSFF6ZO8HrPyn/kQKdv6SxPuo5DuwOhAKy2tmHe2jkQRnG7VcvlKyg4WrAvL+9IsddJ47sy4bvF6ze0sXY711QmToDt7DkYb1Q8dKKYHO4PeUd/k7k/B3eq7uJy1sd4ZXj7qKmhSd+ZJGma7qWM52Oxy4r3lqVCOf4Z7oGZTDi37i9tF9Ux7/Y6MrUbDdrvco+sqv12d7cUTUM+8yW8Gh+BdMZ7UuR1nG5JXSssFgsAYPbMaQgM8MO2nftwoLi6ozkL7JzK9PrQprEB69NHInTu7G42zKL6y63IMhlXHTqUq31oSfyJUL7dcOIk6UEeD9H/kEs2RI4miJvI+dub/UPn52079hC3myGEEFJcco0gYQqhkqaTvdk/dC517PRF4o2sRZeJ+dRpQli2xzX9wR/IuoGDtz9ybZ+UNEC03S/4tKWktMdijIcltlu3ybE5C8mk2Gc7hd9/IJcD7OX5vyO7MrPJwcNHyaXLV0m9tpGzzqlzRdx1DQbStv+fxFGt8QrQePYc2RwTdzoj43XRYzUq4eGRisy+cUXdwRy+cI8cOFtDWLud6HMPk+yUCeT52OdITm5+Dy0hbiLZsXufV8FOnbvSCcCYl0/Mx08Q1uki2YU1JL/oPhfEuXNka3Rs0dSp0xS9Nla9Xairu2/8o9s5cf+zkwrbTp5qH+PUG3GzzoxAmQhungClfYZgav73+H7bHzGgqhIbbSZM8jDdOtGekcnT1gb5rZswHsiB/Xo5qFFjUBU5CBAKIOZTuHDHgDqdBWBZtBw+gt1pCwt/SIifmJ+f9/gPQzsfNwwZKpp3u/qL2Zv+Z6nr+ZegVoeAooCTJfVosbgwpn8QXG4P3B4WfQVOOCqr0FJdjeaqGhgadFCqApCQOgIQCEAcDoDHA0+lgihOjSorD9GhMpRWNqNCa0Fqv0BEh8hw4Ow9DAsRgp+fjaxtX++oSh21MjPzO+cTeVaxTKJYcGZumsFWfoMQQsjWIxVkz/EqQgghe09UkV0FlYQQQvKK7pP7OjNxuhhys6aVsIQQncFGmlpthBBCCsu0pLy6mdidDPnqSAUpuFJL3AxLdv1USb4tqCSEZYn5SjEpmP6iYV5i0oJH7tkf9cbtNmPm1KNHk3YOGZn18/oNZGowgxmpEbA5Gbg9BEEyIVhCcKWqDQpfIWp1Fpy9rQcF4HhJA/KutM+q7uqsuF1rgljIg8XJoKrRCj6PwlP9AzHe14LyD9aSr6ZOz3pfW5+09/bNzCf+CgcAuBx2cz5x55wsuZYXsnVbkA9xxcmkUjooMgQxkX5wuDyQCWnEhStxr9GMAdF+UEpFuHXXACfDIlkdgJoGE/RmN5Lj/BHgK0C8Px/8n8uh3fW159Tb7xz6sL52YeY9zecNDVrz48j2b73m5K8MiFlldS5Kjo6YE7MsPSEsORm88AhI+oSgxc1DZYMZYwaE4Hp1CxgCJMf4QVerB6vTQWRoRO3ly6je/m3FFaMxOyc4cHdFxe3f/JoThSdECoWfeoLDPe4Z8JKDWDJQGhQYJhwxVEVHhvuCEHhq7ltdV8v0pta2eh2fLv+RT5VU+CsKa2o0T+TFs/8D4YFkMrxT8OoAAAAASUVORK5CYII=" alt="Club Ukelele Ponferrada"></span> Club Ukeleles de Ponferrada V.1</h1>
+  <div class="header-actions">
+    <button class="btn btn-white btn-sm" onclick="importJSON()">📥 Importar</button>
+    <button class="btn btn-white btn-sm" onclick="exportJSON()">📤 Exportar</button>
+    <button class="btn btn-white btn-sm" onclick="exportCSV()">📄 CSV</button>
+    <button class="btn btn-white btn-sm" onclick="mergeCSV()">📊 Merge CSV</button>
+    <button class="btn btn-white btn-sm" onclick="printSongs()">🖨️ Imprimir</button>
+    <select id="tuningSelect" onchange="updateReading()">
+      <option value="GCEA" selected>G-C-E-A (Soprano/Tenor)</option>
+      <option value="DGBE">D-G-B-E (Barítono)</option>
+    </select>
+  </div>
+</header>
+
+<div class="main-container" id="listView">
+  <div class="alpha-index" id="alphaIndex"></div>
+  <div class="controls-bar">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Buscar canción o artista..." oninput="filterSongs()">
+    </div>
+    <button class="btn btn-primary" onclick="openEditor()">➕ Nueva Canción</button>
+    <button class="btn btn-secondary" onclick="togglePlaylistPanel()">📋 Listas</button>
+  </div>
+  <div class="song-list" id="songList"></div>
+</div>
+
+<!-- Panel deslizante de listas -->
+<div class="playlist-overlay" id="playlistOverlay" onclick="togglePlaylistPanel()"></div>
+<aside class="playlist-panel" id="playlistPanel">
+  <div class="playlist-panel-header">
+    <h3>📋 Mis Listas</h3>
+    <button class="btn btn-white btn-sm" onclick="togglePlaylistPanel()">✕</button>
+  </div>
+  <div class="playlist-panel-body">
+    <div id="playlistList"></div>
+    <div class="playlist-create">
+      <input type="text" id="newPlaylistName" placeholder="Nombre de la lista">
+      <button class="btn btn-primary btn-sm" onclick="createPlaylist()">Crear</button>
+    </div>
+  </div>
+</aside>
+
+<!-- Reading mode -->
+<div class="reading-mode" id="readingMode">
+  <div class="reading-header">
+    <div style="display:flex;align-items:center;gap:0.8rem;">
+      <div>
+        <div class="song-title" id="readTitle"></div>
+        <div class="song-artist" id="readArtist"></div>
+      </div>
+      <div style="display:flex;gap:0.3rem;">
+        <span class="reading-nav prev" onclick="prevSong()">❮</span>
+        <span class="reading-nav next" onclick="nextSong()">❯</span>
+      </div>
+    </div>
+    <div class="reading-controls">
+      <label>Tono:</label>
+      <select id="keySelect" onchange="updateReading()">
+        <option value="-6">-6</option><option value="-5">-5</option>
+        <option value="-4">-4</option><option value="-3">-3</option>
+        <option value="-2">-2</option><option value="-1">-1</option>
+        <option value="0" selected>0</option>
+        <option value="1">+1</option><option value="2">+2</option>
+        <option value="3">+3</option><option value="4">+4</option>
+        <option value="5">+5</option><option value="6">+6</option>
+      </select>
+      <label>Columnas:</label>
+      <select id="colSelect" onchange="updateReading()">
+        <option value="1">1</option>
+        <option value="2" selected>2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+      </select>
+      <label>Tamaño:</label>
+      <input type="range" id="fontSize" min="12" max="28" value="16" oninput="updateReading()">
+      <button class="btn btn-white btn-sm" onclick="toggleFullscreen()">⛶</button>
+      <button class="btn btn-white btn-sm" onclick="closeReading()">✕</button>
+    </div>
+  </div>
+  <div class="reading-content" id="readingContent"></div>
+</div>
+
+<!-- Editor -->
+<div class="editor-overlay" id="editorOverlay" onclick="closeEditor()"></div>
+<div class="editor-panel" id="editorPanel">
+  <div class="editor-header">
+    <h2 id="editorTitle">Nueva Canción</h2>
+    <button class="btn btn-white btn-sm" onclick="closeEditor()">✕</button>
+  </div>
+  <div class="editor-tabs">
+    <div class="editor-tab active" onclick="switchTab('datos')">Datos</div>
+    <div class="editor-tab" onclick="switchTab('letra')">Letra</div>
+    <div class="editor-tab" onclick="switchTab('preview')">Vista previa</div>
+  </div>
+  <div class="editor-body">
+    <div class="editor-section active" id="tab-datos">
+      <div class="form-group"><label>Título</label><input type="text" id="edTitulo" placeholder="Título de la canción"></div>
+      <div class="form-group"><label>Artista</label><input type="text" id="edArtista" placeholder="Artista o grupo"></div>
+      <div class="form-group"><label>Género</label>
+        <select id="edGenero">
+          <option value="">Seleccionar...</option>
+          <option>Folk</option><option>Pop</option><option>Rock</option>
+          <option>Flamenco</option><option>Jazz</option><option>Clásica</option>
+          <option>Reggae</option><option>Blues</option><option>Latino</option>
+          <option>Infantil</option><option>Otro</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Año</label><input type="number" id="edAnio" placeholder="2024" min="1900" max="2099"></div>
+      <div class="form-group"><label>Idioma</label>
+        <select id="edIdioma">
+          <option value="">Seleccionar...</option>
+          <option>Español</option><option>Inglés</option><option>Portugués</option>
+          <option>Francés</option><option>Italiano</option><option>Alemán</option>
+          <option>Hawaiano</option><option>Otro</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Referencia de video (URL)</label><input type="url" id="edVideo" placeholder="https://youtube.com/..."></div>
+    </div>
+    <div class="editor-section" id="tab-letra">
+      <div class="form-group">
+        <label>Letra con acordes entre corchetes [C], [G], [Am]...</label>
+        <textarea id="edLetra" placeholder="[C]Hola [G]mundo [C]&#10;Esta es la [Am]letra..."></textarea>
+      </div>
+    </div>
+    <div class="editor-section" id="tab-preview">
+      <div class="form-group">
+        <label>Vista previa</label>
+        <div class="editor-preview" id="editorPreview"><pre>La letra aparecerá aquí...</pre></div>
+      </div>
+    </div>
+  </div>
+  <div class="editor-footer">
+    <button class="btn btn-danger" id="btnDelete" onclick="deleteSong()" style="display:none;">🗑️ Borrar</button>
+    <button class="btn btn-secondary" onclick="closeEditor()">Cancelar</button>
+    <button class="btn btn-primary" onclick="saveSong()">💾 Guardar</button>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3 id="modalTitle"></h3>
+    <p id="modalMessage"></p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="modalConfirm">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept=".json" style="display:none" onchange="handleFileImport(event)">
+
+<script>
+// ===== DATA =====
+let songs = JSON.parse(localStorage.getItem('ukulele_songs') || 'null') || [];
+let playlists = JSON.parse(localStorage.getItem('ukulele_playlists') || '[]');
+let migrated = false;
+playlists.forEach(pl => {
+  pl.songs.forEach((val, i) => {
+    if (!songs.find(s => s.id === val)) {
+      const oldSong = songs[val];
+      if (oldSong) {
+        pl.songs[i] = oldSong.id;
+        migrated = true;
+      } else {
+        pl.songs[i] = null;
+      }
+    }
+  });
+  pl.songs = pl.songs.filter(id => id !== null);
+});
+if (migrated) saveData();
+
+let currentSongIndex = -1;
+let editingIndex = -1;
+let currentAlphaFilter = '';
+let activePlaylist = -1;
+
+if (songs.length === 0) {
+  songs = [
+    {
+      id: 1, titulo: "Demo", artista: "Para borrar", genero: "Pop", anio: 2015, idioma: "Inglés",
+      video: "Aquí poner el enlace del video.",
+      letra: `Aquí viene la letra de la canción...
+      Es importante que las notas
+      vayan incluidas entre corchetes [].
+      [C]Ejemplo de canción con [G]texto`
+    },
+  ];
+  saveData();
+}
+
+// ===== CHORD DATA =====
+const chordDict = {
+  'C':    {frets:[0,0,0,3]},
+  'Db':   {frets:[1,1,1,4]},
+  'C#':   {frets:[1,1,1,4]},
+  'D':    {frets:[2,2,2,0]},
+  'Eb':   {frets:[3,3,3,1]},
+  'D#':   {frets:[3,3,3,1]},
+  'E':    {frets:[4,4,4,2]},
+  'F':    {frets:[2,0,1,0]},
+  'F#':   {frets:[3,1,2,1]},
+  'Gb':   {frets:[3,1,2,1]},
+  'G':    {frets:[0,2,3,2]},
+  'G#':   {frets:[5,3,4,3]},
+  'Ab':   {frets:[5,3,4,3]},
+  'A':    {frets:[2,1,0,0]},
+  'A#':   {frets:[3,2,1,1]},
+  'Bb':   {frets:[3,2,1,1]},
+  'B':    {frets:[4,3,2,2]},
+  'H':    {frets:[4,3,2,2]},
+  'Cm':   {frets:[0,3,3,3]},
+  'C#m':  {frets:[1,4,0,4]},
+  'Dbm':  {frets:[1,4,0,4]},
+  'Dm':   {frets:[2,2,1,0]},
+  'D#m':  {frets:[3,2,3,0]},
+  'Ebm':  {frets:[3,2,3,0]},
+  'Em':   {frets:[0,4,3,2]},
+  'Fm':   {frets:[1,0,1,3]},
+  'F#m':  {frets:[2,1,2,0]},
+  'Gbm':  {frets:[2,1,2,0]},
+  'Gm':   {frets:[0,2,3,1]},
+  'G#m':  {frets:[1,3,4,2]},
+  'Abm':  {frets:[1,3,4,2]},
+  'Am':   {frets:[2,0,0,0]},
+  'A#m':  {frets:[3,1,1,1]},
+  'Bbm':  {frets:[3,1,1,1]},
+  'Bm':   {frets:[4,2,2,2]},
+  'Hm':   {frets:[4,2,2,2]},
+  'C7':   {frets:[0,0,0,1]},
+  'Db7':  {frets:[1,1,1,2]},
+  'C#7':  {frets:[1,1,1,2]},
+  'D7':   {frets:[2,2,2,3]},
+  'Eb7':  {frets:[3,3,3,4]},
+  'D#7':  {frets:[3,3,3,4]},
+  'E7':   {frets:[1,2,0,2]},
+  'F7':   {frets:[2,3,1,3]},
+  'F#7':  {frets:[2,3,1,3]},
+  'Gb7':  {frets:[2,3,1,3]},
+  'G7':   {frets:[0,2,1,2]},
+  'G#7':  {frets:[1,3,2,3]},
+  'Ab7':  {frets:[1,3,2,3]},
+  'A7':   {frets:[0,1,0,0]},
+  'A#7':  {frets:[1,2,1,1]},
+  'Bb7':  {frets:[1,2,1,1]},
+  'B7':   {frets:[2,3,2,2]},
+  'H7':   {frets:[2,3,2,2]},
+  'Cm7':  {frets:[3,3,3,3]},
+  'C#m7': {frets:[1,1,0,2]},
+  'Dbm7': {frets:[1,1,0,2]},
+  'Dm7':  {frets:[2,2,1,3]},
+  'D#m7': {frets:[3,3,2,4]},
+  'Ebm7': {frets:[3,3,2,4]},
+  'Em7':  {frets:[0,2,0,2]},
+  'Fm7':  {frets:[1,3,1,3]},
+  'F#m7': {frets:[2,4,2,4]},
+  'Gbm7': {frets:[2,4,2,4]},
+  'Gm7':  {frets:[0,2,1,1]},
+  'G#m7': {frets:[1,3,2,2]},
+  'Abm7': {frets:[1,3,2,2]},
+  'Am7':  {frets:[0,0,0,0]},
+  'A#m7': {frets:[1,1,1,1]},
+  'Bbm7': {frets:[1,1,1,1]},
+  'Bm7':  {frets:[2,2,2,2]},
+  'Hm7':  {frets:[2,2,2,2]},
+  'Cmaj7':{frets:[0,0,0,2]},
+  'Dmaj7':{frets:[2,2,2,4]},
+  'Emaj7':{frets:[1,3,0,2]},
+  'Fmaj7':{frets:[2,4,1,3]},
+  'Gmaj7':{frets:[0,2,2,2]},
+  'Amaj7':{frets:[1,1,0,0]},
+  'Bmaj7':{frets:[4,3,2,1]},
+  'Bbmaj7':{frets:[3,2,1,0]},
+  'C6':   {frets:[0,0,0,0]},
+  'D6':   {frets:[2,2,2,2]},
+  'E6':   {frets:[4,4,4,4]},
+  'F6':   {frets:[2,2,1,3]},
+  'G6':   {frets:[0,2,0,2]},
+  'A6':   {frets:[2,4,2,4]},
+  'B6':   {frets:[1,3,2,2]},
+  'Bb6':  {frets:[0,2,1,1]},
+  'Cm6':  {frets:[2,3,3,3]},
+  'Dm6':  {frets:[2,2,1,2]},
+  'Em6':  {frets:[0,1,0,2]},
+  'Fm6':  {frets:[1,2,1,3]},
+  'Gm6':  {frets:[0,2,0,1]},
+  'Am6':  {frets:[2,4,2,3]},
+  'Bm6':  {frets:[1,2,2,2]},
+  'C9':   {frets:[3,2,0,3]},
+  'D9':   {frets:[5,4,2,5]},
+  'E9':   {frets:[7,6,4,7]},
+  'F9':   {frets:[2,1,1,1]},
+  'G9':   {frets:[0,5,5,2]},
+  'A9':   {frets:[2,1,3,2]},
+  'Bb9':  {frets:[2,3,4,3]},
+  'B9':   {frets:[4,3,5,4]},
+  'Cm9':  {frets:[5,3,6,5]},
+  'Dm9':  {frets:[5,5,0,5]},
+  'Em9':  {frets:[0,6,0,5]},
+  'Fm9':  {frets:[0,5,4,6]},
+  'Gm9':  {frets:[0,5,5,1]},
+  'Am9':  {frets:[2,0,3,2]},
+  'Bm9':  {frets:[4,2,5,4]},
+  'Csus2':{frets:[0,2,3,3]},
+  'Dsus2':{frets:[2,2,0,0]},
+  'Esus2':{frets:[4,4,2,2]},
+  'Fsus2':{frets:[0,0,1,3]},
+  'Gsus2':{frets:[0,2,3,3]},
+  'Asus2':{frets:[2,4,5,2]},
+  'Bsus2':{frets:[4,1,2,2]},
+  'Bbsus2':{frets:[3,0,1,1]},
+  'Csus4':{frets:[0,0,1,3]},
+  'Dsus4':{frets:[0,2,3,0]},
+  'Esus4':{frets:[4,4,0,0]},
+  'Fsus4':{frets:[3,0,1,1]},
+  'Gsus4':{frets:[0,2,3,0]},
+  'Asus4':{frets:[0,2,3,3]},
+  'Bsus4':{frets:[4,4,2,2]},
+  'Bbsus4':{frets:[3,3,1,1]},
+  'Caug': {frets:[1,0,0,3]},
+  'Daug': {frets:[3,2,2,1]},
+  'Eaug': {frets:[1,0,0,3]},
+  'Faug': {frets:[2,1,1,0]},
+  'Gaug': {frets:[0,3,3,2]},
+  'Aaug': {frets:[2,1,2,4]},
+  'Bbaug':{frets:[3,2,2,1]},
+  'Baug': {frets:[4,3,3,2]},
+  'Cdim': {frets:[0,3,2,3]},
+  'Ddim': {frets:[1,2,1,0]},
+  'Edim': {frets:[0,4,0,1]},
+  'Fdim': {frets:[1,0,1,2]},
+  'Gdim': {frets:[0,1,3,1]},
+  'Adim': {frets:[2,3,5,3]},
+  'Bbdim':{frets:[3,1,0,1]},
+  'Bdim': {frets:[4,2,1,2]},
+  'Cm7b5':{frets:[3,3,2,3]},
+  'Dm7b5':{frets:[1,2,1,3]},
+  'Em7b5':{frets:[0,2,0,1]},
+  'Fm7b5':{frets:[1,3,1,2]},
+  'Gm7b5':{frets:[0,1,1,1]},
+  'Am7b5':{frets:[2,3,3,3]},
+  'Bbm7b5':{frets:[2,3,2,4]},
+  'Bm7b5':{frets:[2,2,1,2]},
+  'C5':   {frets:[0,0,3,3]},
+  'D5':   {frets:[2,2,0,0]},
+  'E5':   {frets:[4,4,0,2]},
+  'F5':   {frets:[0,0,1,3]},
+  'G5':   {frets:[0,2,3,5]},
+  'A5':   {frets:[2,4,0,0]},
+  'Bb5':  {frets:[3,0,1,1]},
+  'B5':   {frets:[0,0,2,2]},
+};
+
+const chordDictBaritone = {
+  'D':    {frets:[0,0,0,2]},
+  'Eb':   {frets:[1,1,1,3]},
+  'E':    {frets:[2,2,2,0]},
+  'F':    {frets:[0,0,2,0]},
+  'F#':   {frets:[1,1,3,1]},
+  'G':    {frets:[0,2,3,0]},
+  'Ab':   {frets:[4,3,4,2]},
+  'A':    {frets:[2,2,2,0]},
+  'Bb':   {frets:[3,3,4,1]},
+  'B':    {frets:[4,4,4,2]},
+  'C':    {frets:[0,0,1,0]},
+  'C#':   {frets:[1,1,2,1]},
+  'Dm':   {frets:[0,0,1,0]},
+  'Em':   {frets:[2,0,0,0]},
+  'Fm':   {frets:[1,0,1,3]},
+  'Gm':   {frets:[0,2,3,1]},
+  'Am':   {frets:[2,0,0,0]},
+  'Bbm':  {frets:[3,1,1,1]},
+  'Bm':   {frets:[4,2,4,2]},
+  'Cm':   {frets:[0,0,0,1]},
+  'C#m':  {frets:[1,1,1,2]},
+  'D7':   {frets:[0,0,0,1]},
+  'E7':   {frets:[2,0,0,1]},
+  'F7':   {frets:[0,0,2,1]},
+  'G7':   {frets:[0,2,1,0]},
+  'A7':   {frets:[2,1,0,2]},
+  'B7':   {frets:[4,2,1,2]},
+  'C7':   {frets:[0,0,1,2]},
+  'Dm7':  {frets:[0,0,0,0]},
+  'Em7':  {frets:[2,0,0,2]},
+  'Gm7':  {frets:[0,2,3,2]},
+  'Am7':  {frets:[2,0,0,1]},
+  'Cm7':  {frets:[0,0,0,2]},
+  'Cmaj7':{frets:[0,0,0,2]},
+  'Dmaj7':{frets:[0,0,0,3]},
+  'Emaj7':{frets:[2,0,0,0]},
+  'Gmaj7':{frets:[0,2,3,2]},
+  'Amaj7':{frets:[2,0,0,0]},
+};
+
+const chordOrder = ['C','Db','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
+
+function transposeChord(chord, semitones) {
+  let match = chord.match(/^([A-Ga-gHh][b#]?)(.*)/);
+  if (!match) return chord;
+  let base = match[1].toUpperCase();
+  let suffix = match[2];
+  if (base === 'H') base = 'B';
+  if (base === 'H#') base = 'C';
+  let baseIndex = chordOrder.indexOf(base);
+  if (baseIndex === -1) return chord;
+  let newIndex = (baseIndex + semitones + 12) % 12;
+  return chordOrder[newIndex] + suffix;
+}
+
+function getChordSVG(chordName) {
+  const tuning = document.getElementById('tuningSelect')?.value || 'GCEA';
+  const dict = tuning === 'DGBE' ? chordDictBaritone : chordDict;
+  let data = dict[chordName];
+  if (!data) {
+    let match = chordName.match(/^([A-Ga-gHh][b#]?)(.*)/);
+    if (match) {
+      let key = match[1].toUpperCase() + match[2];
+      if (key.startsWith('H')) key = 'B' + key.slice(1);
+      data = dict[key];
+    }
+  }
+  if (!data) {
+    return `<svg width="60" height="70"><rect width="60" height="70" fill="#1a1a2e" rx="6"/><text x="30" y="38" text-anchor="middle" fill="white" font-size="11">${chordName}</text></svg>`;
+  }
+  const frets = data.frets;
+  const w=80, h=108, sx=(i)=>15+i*18, fy=(f)=>20+f*15;
+  let svg = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">`;
+  svg += `<rect width="${w}" height="${h}" fill="#1a1a2e" rx="6"/>`;
+  svg += `<text x="${w/2}" y="10" text-anchor="middle" fill="#f4a261" font-size="10" font-weight="bold">${chordName}</text>`;
+  for (let f=0;f<=4;f++) svg += `<line x1="12" y1="${fy(f)}" x2="${w-12}" y2="${fy(f)}" stroke="#666" stroke-width="1"/>`;
+  for (let s=0;s<4;s++) svg += `<line x1="${sx(s)}" y1="${fy(0)}" x2="${sx(s)}" y2="${fy(4)}" stroke="#999" stroke-width="1"/>`;
+  svg += `<rect x="12" y="${fy(0)-2}" width="${w-24}" height="3" fill="#ccc"/>`;
+  for (let s=0;s<4;s++) {
+    const fret = frets[s];
+    if (fret===0) svg += `<circle cx="${sx(s)}" cy="${fy(0)-6}" r="3" fill="none" stroke="#4fc3f7" stroke-width="1.5"/>`;
+    else if (fret<=4) svg += `<circle cx="${sx(s)}" cy="${fy(fret-0.5)}" r="6" fill="#4fc3f7"/>`;
+    else { svg += `<circle cx="${sx(s)}" cy="${fy(3.5)}" r="6" fill="#4fc3f7"/><text x="${sx(s)}" y="${fy(3.5)+4}" text-anchor="middle" fill="#1a1a2e" font-size="8" font-weight="bold">${fret}</text>`; }
+  }
+  const labels=['G','C','E','A'];
+  for (let s=0;s<4;s++) svg += `<text x="${sx(s)}" y="${fy(4)+14}" text-anchor="middle" fill="#bbb" font-size="11" font-weight="bold">${labels[s]}</text>`;
+  svg += `</svg>`;
+  return svg;
+}
+
+function renderChords(text, keyOffset) {
+  if (!text) return '';
+  let html = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  html = html.replace(/\[([^\]]+)\]/g, (match, chord) => {
+    let transposed = chord;
+    try {
+      const offset = parseInt(keyOffset) || 0;
+      if (offset !== 0) transposed = transposeChord(chord, offset);
+    } catch(e) {}
+    let tooltip = '';
+    try {
+      tooltip = `<span class="chord-tooltip">${getChordSVG(transposed)}</span>`;
+    } catch(e) {}
+    return `<span class="chord-span">[${transposed}]${tooltip}</span>`;
+  });
+  return html;
+}
+
+function renderSongList() {
+  const list = document.getElementById('songList');
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  let filtered;
+
+  if (activePlaylist >= 0) {
+    filtered = playlists[activePlaylist].songs
+      .map(id => songs.find(s => s.id === id))
+      .filter(s => s && (!search || s.titulo.toLowerCase().includes(search) || s.artista.toLowerCase().includes(search)));
+  } else {
+    filtered = songs.filter(s => {
+      const m = !search || s.titulo.toLowerCase().includes(search) || s.artista.toLowerCase().includes(search);
+      const a = !currentAlphaFilter || s.titulo.toUpperCase().startsWith(currentAlphaFilter);
+      return m && a;
+    });
+  }
+  filtered.sort((a,b) => a.titulo.localeCompare(b.titulo,'es'));
+
+  let banner = '';
+  if (activePlaylist >= 0) {
+    const pl = playlists[activePlaylist];
+    banner = `<div class="playlist-banner"><span>📋 <strong>${pl.name}</strong> — ${pl.songs.length} canciones</span><button class="btn btn-white btn-sm" onclick="closeActivePlaylist()">✕ Ver todas</button></div>`;
+  }
+
+  if (filtered.length === 0) {
+    list.innerHTML = banner + '<p style="text-align:center;color:var(--text-light);padding:2rem;">No hay canciones.</p>';
+    return;
+  }
+
+  list.innerHTML = banner + filtered.map(s => {
+    const idx = songs.indexOf(s);
+    const inAnyPl = playlists.some(pl => pl.songs.includes(Number(s.id)));
+    return `<div class="song-card" onclick="openReading(${idx})">
+      <div class="song-info">
+        <div class="song-title">${s.titulo}</div>
+        <div class="song-meta">${s.artista||'—'} · ${s.genero||'—'} · ${s.anio||'—'} · ${s.idioma||'—'}</div>
+      </div>
+      <div class="song-actions">
+        ${s.video?`<a href="${s.video}" target="_blank" onclick="event.stopPropagation()" title="Video">▶️</a>`:''}
+        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openEditor(${idx})">✏️</button>
+        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();addToPlaylist(${idx})" title="Añadir a lista">📋+</button>
+        ${inAnyPl?`<button class="btn btn-danger btn-sm" onclick="event.stopPropagation();removeSongFromPlaylist(${idx})" title="Quitar de lista">📋−</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderAlphaIndex() {
+  const container = document.getElementById('alphaIndex');
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  const available = new Set(songs.map(s => s.titulo[0].toUpperCase()));
+
+  let html = letters.map(l => {
+    const cls = available.has(l) ? '' : 'disabled';
+    const active = currentAlphaFilter === l ? 'active' : '';
+    return `<a href="#" class="${cls} ${active}" onclick="event.preventDefault();filterAlpha('${l}')">${l}</a>`;
+  }).join('');
+
+  const allActive = currentAlphaFilter === '' ? 'active' : '';
+  html += `<a href="#" class="alpha-all ${allActive}" onclick="event.preventDefault();filterAlpha('All')">All</a>`;
+
+  container.innerHTML = html;
+}
+
+function renderPlaylists() {
+  const container = document.getElementById('playlistList');
+  if (playlists.length === 0) {
+    container.innerHTML = '<p style="color:var(--text-light);font-size:0.8rem;">Sin listas</p>';
+    return;
+  }
+  container.innerHTML = playlists.map((pl, i) => {
+    const isActive = i === activePlaylist;
+    const songsHtml = pl.songs.map(id => {
+      const s = songs.find(x => x.id === id);
+      if (!s) return '';
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:0.2rem 0 0.2rem 0.8rem;font-size:0.8rem;">
+        <span>${s.titulo}</span>
+        <button class="btn btn-danger btn-sm" style="padding:0.1rem 0.3rem;font-size:0.7rem;" onclick="removeFromPlaylistById(${i},${id})" title="Quitar">✕</button>
+      </div>`;
+    }).join('');
+
+    return `
+      <div class="playlist-item ${isActive?'active-pl':''}">
+        <div style="cursor:pointer;flex:1;" onclick="openPlaylist(${i})">
+          <div class="pl-name">${pl.name}</div>
+          <div class="pl-count">${pl.songs.length} canciones</div>
+        </div>
+        <div style="display:flex;gap:0.2rem;">
+          <button class="btn btn-primary btn-sm" style="padding:0.2rem 0.4rem;" onclick="printPlaylist(${i})">🖨️</button>
+          <button class="btn btn-danger btn-sm" style="padding:0.2rem 0.4rem;" onclick="deletePlaylist(${i})">🗑️</button>
+        </div>
+      </div>
+      <div style="margin-bottom:0.5rem;">${songsHtml}</div>`;
+  }).join('');
+}
+
+function removeFromPlaylistById(playlistIdx, songId) {
+  const pl = playlists[playlistIdx];
+  const id = Number(songId);
+  const pos = pl.songs.indexOf(id);
+  if (pos >= 0) {
+    pl.songs.splice(pos, 1);
+    saveData();
+    renderPlaylists();
+    renderSongList();
+  }
+}
+
+function removeSongFromPlaylist(songIndex) {
+  const song = songs[songIndex];
+  if (!song) return;
+  const id = Number(song.id);
+
+  if (activePlaylist >= 0) {
+    const pl = playlists[activePlaylist];
+    const pos = pl.songs.indexOf(id);
+    if (pos >= 0) {
+      pl.songs.splice(pos, 1);
+      saveData();
+      renderSongList();
+      renderPlaylists();
+    }
+  } else {
+    const inWhich = playlists.filter(pl => pl.songs.includes(id));
+    if (inWhich.length === 0) { alert('No está en ninguna lista.'); return; }
+    if (inWhich.length === 1) {
+      const pos = inWhich[0].songs.indexOf(id);
+      if (pos >= 0) {
+        inWhich[0].songs.splice(pos, 1);
+        saveData();
+        renderSongList();
+        renderPlaylists();
+      }
+    } else {
+      const input = prompt('Quitar de:\n\n' + inWhich.map((pl,i)=>`${i+1}. ${pl.name}`).join('\n') + '\n\nIntroduce el número:');
+      const idx = parseInt(input) - 1;
+      if (idx >= 0 && idx < inWhich.length) {
+        const pos = inWhich[idx].songs.indexOf(id);
+        if (pos >= 0) {
+          inWhich[idx].songs.splice(pos, 1);
+          saveData();
+          renderSongList();
+          renderPlaylists();
+        }
+      }
+    }
+  }
+}
+
+// ===== ALPHA =====
+function filterAlpha(letter) {
+  if (letter === 'All') {
+    currentAlphaFilter = '';
+  } else {
+    currentAlphaFilter = currentAlphaFilter === letter ? '' : letter;
+  }
+  renderAlphaIndex();
+  renderSongList();
+}
+function filterSongs() { renderSongList(); }
+
+// ===== READING MODE =====
+function openReading(index) {
+  currentSongIndex = index;
+  const song = songs[index];
+  document.getElementById('readTitle').textContent = song.titulo;
+  document.getElementById('readArtist').textContent = `${song.artista||''} ${song.genero?'· '+song.genero:''} ${song.anio?'· '+song.anio:''}`;
+  document.getElementById('readingMode').classList.add('active');
+  document.getElementById('listView').style.display = 'none';
+  updateReading();
+}
+function closeReading() {
+  document.getElementById('readingMode').classList.remove('active');
+  document.getElementById('listView').style.display = 'block';
+  document.exitFullscreen?.();
+}
+function updateReading() {
+  if (currentSongIndex < 0) return;
+  const song = songs[currentSongIndex];
+  const keyOffset = document.getElementById('keySelect').value;
+  const cols = parseInt(document.getElementById('colSelect').value);
+  const fontSize = document.getElementById('fontSize').value;
+
+  const content = document.getElementById('readingContent');
+  content.style.columnCount = cols;
+  content.style.fontSize = fontSize + 'px';
+  content.innerHTML = `<pre>${renderChords(song.letra, keyOffset)}</pre>`;
+}
+function nextSong() { if (currentSongIndex < songs.length-1) openReading(currentSongIndex+1); }
+function prevSong() { if (currentSongIndex > 0) openReading(currentSongIndex-1); }
+function toggleFullscreen() {
+  const el = document.getElementById('readingMode');
+  if (!document.fullscreenElement) el.requestFullscreen?.();
+  else document.exitFullscreen?.();
+}
+
+// ===== EDITOR =====
+function openEditor(index=-1) {
+  editingIndex = index;
+  document.getElementById('editorPanel').classList.add('active');
+  document.getElementById('editorOverlay').classList.add('active');
+  if (index >= 0) {
+    const s = songs[index];
+    document.getElementById('editorTitle').textContent = 'Editar: '+s.titulo;
+    document.getElementById('edTitulo').value = s.titulo;
+    document.getElementById('edArtista').value = s.artista;
+    document.getElementById('edGenero').value = s.genero;
+    document.getElementById('edAnio').value = s.anio;
+    document.getElementById('edIdioma').value = s.idioma;
+    document.getElementById('edVideo').value = s.video||'';
+    document.getElementById('edLetra').value = s.letra;
+    document.getElementById('btnDelete').style.display = 'inline-flex';
+  } else {
+    document.getElementById('editorTitle').textContent = 'Nueva Canción';
+    ['edTitulo','edArtista','edGenero','edAnio','edIdioma','edVideo','edLetra'].forEach(id => document.getElementById(id).value='');
+    document.getElementById('btnDelete').style.display = 'none';
+  }
+  switchTab('datos');
+  updatePreview();
+}
+function closeEditor() {
+  document.getElementById('editorPanel').classList.remove('active');
+  document.getElementById('editorOverlay').classList.remove('active');
+  editingIndex = -1;
+}
+function switchTab(tab) {
+  document.querySelectorAll('.editor-tab').forEach((t,i) => t.classList.toggle('active',['datos','letra','preview'][i]===tab));
+  document.querySelectorAll('.editor-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  if (tab==='preview') updatePreview();
+}
+function updatePreview() {
+  const letra = document.getElementById('edLetra').value;
+  document.getElementById('editorPreview').innerHTML = `<pre>${renderChords(letra,0)||'<em>La letra aparecerá aquí...</em>'}</pre>`;
+}
+function saveSong() {
+  const titulo = document.getElementById('edTitulo').value.trim();
+  if (!titulo) { alert('El título es obligatorio.'); return; }
+  const data = {
+    titulo,
+    artista: document.getElementById('edArtista').value.trim(),
+    genero: document.getElementById('edGenero').value,
+    anio: parseInt(document.getElementById('edAnio').value)||null,
+    idioma: document.getElementById('edIdioma').value,
+    video: document.getElementById('edVideo').value.trim(),
+    letra: document.getElementById('edLetra').value
+  };
+  if (editingIndex >= 0) { songs[editingIndex] = {...songs[editingIndex], ...data}; }
+  else { data.id = Date.now(); songs.push(data); }
+  saveData(); renderSongList(); renderAlphaIndex(); closeEditor();
+}
+function deleteSong() {
+  if (editingIndex < 0) return;
+  const song = songs[editingIndex];
+  document.getElementById('modalTitle').textContent = '¿Borrar canción?';
+  document.getElementById('modalMessage').textContent = `¿Seguro que quieres borrar "${song.titulo}"?`;
+  document.getElementById('modalConfirm').onclick = () => {
+    playlists.forEach(pl => {
+      pl.songs = pl.songs.filter(id => songs.some(s => s.id === id && s !== song));
+    });
+    songs.splice(editingIndex, 1);
+    saveData(); renderSongList(); renderAlphaIndex(); renderPlaylists();
+    closeEditor(); closeModal();
+  };
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+// ===== PLAYLISTS =====
+function togglePlaylistPanel() {
+  const panel = document.getElementById('playlistPanel');
+  const overlay = document.getElementById('playlistOverlay');
+  const isActive = panel.classList.contains('active');
+  panel.classList.toggle('active');
+  overlay.classList.toggle('active');
+  if (!isActive) renderPlaylists();
+}
+function createPlaylist() {
+  const name = document.getElementById('newPlaylistName').value.trim();
+  if (!name) return;
+  playlists.push({ name, songs: [] });
+  document.getElementById('newPlaylistName').value = '';
+  saveData(); renderPlaylists();
+}
+function openPlaylist(i) {
+  activePlaylist = i;
+  document.getElementById('listView').classList.add('playlist-active');
+  renderSongList(); renderPlaylists();
+  document.getElementById('playlistPanel').classList.remove('active');
+  document.getElementById('playlistOverlay').classList.remove('active');
+}
+function closeActivePlaylist() {
+  activePlaylist = -1;
+  document.getElementById('listView').classList.remove('playlist-active');
+  renderSongList(); renderPlaylists();
+}
+function addToPlaylist(songIndex) {
+  if (playlists.length === 0) { alert('Primero crea una lista.'); togglePlaylistPanel(); return; }
+  const song = songs[songIndex];
+  const input = prompt('Añadir a lista:\n\n' + playlists.map((pl,i)=>`${i+1}. ${pl.name} (${pl.songs.length})`).join('\n') + '\n\nIntroduce el número:');
+  const idx = parseInt(input)-1;
+  if (idx>=0 && idx<playlists.length) {
+    const pl = playlists[idx];
+    if (!pl.songs.includes(song.id)) {
+      pl.songs.push(Number(song.id));
+      saveData(); renderPlaylists();
+      alert(`Añadida a "${pl.name}"`);
+    } else alert('Ya está en esa lista.');
+  }
+}
+
+function deletePlaylist(i) {
+  playlists.splice(i,1);
+  if (activePlaylist===i) activePlaylist=-1;
+  else if (activePlaylist>i) activePlaylist--;
+  saveData(); renderPlaylists(); renderSongList();
+}
+
+// ===== IMPORT / EXPORT =====
+function exportJSON() {
+  let data, filename;
+
+  if (activePlaylist >= 0) {
+    const pl = playlists[activePlaylist];
+    const songsInPl = pl.songs
+      .map(id => songs.find(s => s.id === Number(id)))
+      .filter(s => s)
+      .sort((a, b) => a.titulo.localeCompare(b.titulo, 'es'));
+    data = { tipo: 'lista', nombre: pl.name, canciones: songsInPl };
+    filename = `lista_${pl.name.replace(/\s+/g,'_')}.json`;
+  } else {
+    data = [...songs].sort((a, b) => a.titulo.localeCompare(b.titulo, 'es'));
+    filename = 'club_ukuleles_canciones.json';
+  }
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportCSV() {
+  const songsToExport = activePlaylist >= 0
+    ? playlists[activePlaylist].songs
+        .map(id => songs.find(s => s.id === Number(id)))
+        .filter(s => s)
+        .sort((a, b) => a.titulo.localeCompare(b.titulo, 'es'))
+    : [...songs].sort((a, b) => a.titulo.localeCompare(b.titulo, 'es'));
+
+  const headers = ['titulo','artista','genero','anio','idioma','video','letra'];
+  const csv = [
+    headers.join(';'),
+    ...songsToExport.map(s => headers.map(h => `"${(s[h]||'').toString().replace(/"/g,'""')}"`).join(';'))
+  ].join('\n');
+
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = activePlaylist >= 0
+    ? `lista_${playlists[activePlaylist].name.replace(/\s+/g,'_')}.csv`
+    : 'club_ukuleles_canciones.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function mergeCSV() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.csv';
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const lines = ev.target.result.trim().split('\n');
+      const headers = lines[0].split(';').map(h => h.trim().toLowerCase());
+      let updated = 0;
+
+      for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].split(';').map(c => c.trim().replace(/^"|"$/g, ''));
+        const row = {};
+        headers.forEach((h, j) => row[h] = cols[j] || '');
+        if (!row.titulo) continue;
+
+        const song = songs.find(s => s.titulo.toLowerCase() === row.titulo.toLowerCase());
+        if (!song) continue;
+
+        let changed = false;
+        if (row.genero && !song.genero) { song.genero = row.genero; changed = true; }
+        if (row.idioma && !song.idioma) { song.idioma = row.idioma; changed = true; }
+        if (row.video && !song.video) { song.video = row.video; changed = true; }
+        if (row.anio && !song.anio) { song.anio = parseInt(row.anio); changed = true; }
+
+        if (changed) updated++;
+      }
+
+      saveData();
+      renderSongList();
+      renderAlphaIndex();
+      alert(`Merge completado: ${updated} canciones actualizadas.`);
+    };
+    reader.readAsText(file, 'utf-8');
+  };
+  input.click();
+}
+
+function importJSON() { document.getElementById('fileInput').click(); }
+function handleFileImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      let count = 0;
+
+      if (Array.isArray(data)) {
+        data.forEach(song => {
+          const existing = songs.findIndex(s => s.id === song.id);
+          if (existing >= 0) songs[existing] = song;
+          else { song.id = song.id || Date.now() + Math.random(); songs.push(song); }
+          count++;
+        });
+        alert(`${count} canciones importadas.`);
+      } else if (data.tipo === 'lista' && Array.isArray(data.canciones)) {
+        data.canciones.forEach(song => {
+          const existing = songs.findIndex(s => s.id === song.id);
+          if (existing >= 0) songs[existing] = song;
+          else { song.id = song.id || Date.now() + Math.random(); songs.push(song); }
+          count++;
+        });
+        let pl = playlists.find(p => p.name === data.nombre);
+        if (!pl) {
+          pl = { name: data.nombre, songs: [] };
+          playlists.push(pl);
+        }
+        data.canciones.forEach(song => {
+          const id = Number(song.id);
+          if (!pl.songs.includes(id)) pl.songs.push(id);
+        });
+        alert(`Lista "${data.nombre}" importada con ${count} canciones.`);
+      } else {
+        alert('Formato no reconocido.');
+        return;
+      }
+
+      saveData();
+      renderSongList();
+      renderAlphaIndex();
+      renderPlaylists();
+    } catch(err) {
+      alert('Error al importar: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ===== PRINT =====
+function printContent(title, html) {
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentDocument || iframe.contentWindow.document;
+  doc.write(`<html><head><title>${title}</title><style>
+    body{font-family:'Courier New',monospace;padding:2rem;font-size:12px}
+    .song{page-break-inside:avoid;margin-bottom:2rem;border-bottom:1px solid #ccc;padding-bottom:1rem}
+    .song h2{font-size:16px;margin-bottom:0.3rem}
+    .song .meta{font-size:11px;color:#666;margin-bottom:0.5rem}
+    .song .meta a{color:#0066cc;text-decoration:none}
+    .chord{font-weight:bold}
+    pre{white-space:pre-wrap;line-height:1.6}
+  </style></head><body>${html}</body></html>`);
+  doc.close();
+
+  iframe.contentWindow.focus();
+  iframe.contentWindow.print();
+
+  setTimeout(() => document.body.removeChild(iframe), 1000);
+}
+
+function printSongs() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  let filtered;
+  if (activePlaylist >= 0) {
+    filtered = playlists[activePlaylist].songs.map(id => songs.find(s => s.id === Number(id))).filter(s => s);
+  } else {
+    filtered = songs.filter(s => {
+      const m = !search || s.titulo.toLowerCase().includes(search) || s.artista.toLowerCase().includes(search);
+      const a = !currentAlphaFilter || s.titulo.toUpperCase().startsWith(currentAlphaFilter);
+      return m && a;
+    });
+  }
+  filtered.sort((a, b) => a.titulo.localeCompare(b.titulo, 'es', { sensitivity: 'base' }));
+  if (filtered.length === 0) { alert('No hay canciones para imprimir.'); return; }
+
+  const html = `<h1>🎵 Club Ukeleles de Ponferrada</h1><hr>` +
+    filtered.map(s => `<div class="song"><h2>${s.titulo}</h2><div class="meta">${s.artista} · ${s.genero} · ${s.anio} · ${s.idioma}${s.video ? ` · <a href="${s.video}">🎬 Video</a>` : ''}</div><pre>${s.letra.replace(/\[([^\]]+)\]/g,'<span class="chord">[$1]</span>')}</pre></div>`).join('');
+
+  printContent('Club Ukeleles', html);
+}
+
+function printPlaylist(i) {
+  const pl = playlists[i];
+  const sorted = pl.songs
+    .map(id => songs.find(x => x.id === Number(id)))
+    .filter(s => s)
+    .sort((a, b) => a.titulo.localeCompare(b.titulo, 'es', { sensitivity: 'base' }));
+
+  const html = `<h1>📋 ${pl.name}</h1><hr>` +
+    sorted.map(s => `<div class="song"><h2>${s.titulo}</h2><div class="meta">${s.artista} · ${s.genero} · ${s.anio} · ${s.idioma}${s.video ? ` · <a href="${s.video}">🎬 Video</a>` : ''}</div><pre>${s.letra.replace(/\[([^\]]+)\]/g,'<span class="chord">[$1]</span>')}</pre></div>`).join('');
+
+  printContent(pl.name, html);
+}
+
+// ===== MODAL =====
+function closeModal() { document.getElementById('modalOverlay').classList.remove('active'); }
+
+// ===== TOOLTIP =====
+function positionTooltip(chordSpan) {
+  const tooltip = chordSpan.querySelector('.chord-tooltip');
+  if (!tooltip) return;
+
+  tooltip.classList.remove('tooltip-below', 'tooltip-left', 'tooltip-right');
+
+  tooltip.style.display = 'block';
+  const rect = tooltip.getBoundingClientRect();
+  const spanRect = chordSpan.getBoundingClientRect();
+
+  if (rect.top < 0) {
+    tooltip.classList.add('tooltip-below');
+  }
+
+  const newRect = tooltip.getBoundingClientRect();
+
+  if (newRect.left < 0) {
+    tooltip.classList.add('tooltip-left');
+  }
+  else if (newRect.right > window.innerWidth) {
+    tooltip.classList.add('tooltip-right');
+  }
+
+  tooltip.style.display = '';
+}
+
+document.addEventListener('click', (e) => {
+  const chordSpan = e.target.closest('.chord-span');
+  if (chordSpan) {
+    const wasActive = chordSpan.classList.contains('show-tooltip');
+    document.querySelectorAll('.chord-span.show-tooltip').forEach(el => {
+      el.classList.remove('show-tooltip');
+    });
+    if (!wasActive) {
+      chordSpan.classList.add('show-tooltip');
+      positionTooltip(chordSpan);
+    }
+    e.stopPropagation();
+    return;
+  }
+  document.querySelectorAll('.chord-span.show-tooltip').forEach(el => {
+    el.classList.remove('show-tooltip');
+  });
+});
+
+document.addEventListener('mouseover', (e) => {
+  const chordSpan = e.target.closest('.chord-span');
+  if (chordSpan) {
+    positionTooltip(chordSpan);
+  }
+});
+
+window.addEventListener('scroll', () => {
+  const active = document.querySelector('.chord-span.show-tooltip');
+  if (active) positionTooltip(active);
+}, true);
+
+window.addEventListener('resize', () => {
+  const active = document.querySelector('.chord-span.show-tooltip');
+  if (active) positionTooltip(active);
+});
+
+// ===== PERSISTENCE =====
+function saveData() {
+  songs.sort((a, b) => a.titulo.localeCompare(b.titulo, 'es'));
+  localStorage.setItem('ukulele_songs', JSON.stringify(songs));
+  localStorage.setItem('ukulele_playlists', JSON.stringify(playlists));
+}
+
+// ===== INIT =====
+renderAlphaIndex();
+renderSongList();
+renderPlaylists();
+</script>
+</body>
+</html>   
